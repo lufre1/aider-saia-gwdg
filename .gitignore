@@ -1,0 +1,5 @@
+# Generated installer (never edit directly)
+install-aider-saia-gwdg.sh
+
+# Backup directories
+*.bak-*
