@@ -162,6 +162,7 @@ chmod +x "$EXTRACT_DIR/src/add-saia-aider.sh"
 CHILD_ARGS=()
 if [[ -n "$KEY" ]]; then CHILD_ARGS+=(--key "$KEY"); fi
 if [[ -n "$KEY_FILE" ]]; then CHILD_ARGS+=(--key-file "$KEY_FILE"); fi
+if [[ $ASSUME_YES -eq 1 ]]; then CHILD_ARGS+=(--yes); fi
 # ${a[@]+"${a[@]}"}: bash 3.2 (stock macOS) calls an empty array unbound under set -u
 "$EXTRACT_DIR/src/add-saia-aider.sh" ${CHILD_ARGS[@]+"${CHILD_ARGS[@]}"}
 ASA_GEN_TAIL

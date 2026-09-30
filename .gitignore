@@ -3,3 +3,4 @@ install-aider-saia-gwdg.sh
 
 # Backup directories
 *.bak-*
+.aider*

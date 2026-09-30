@@ -19,6 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODELS_FILE="${SCRIPT_DIR}/models.txt"
 
 # ── Parse arguments ──────────────────────────────────────────────────
+ASSUME_YES=0
 KEY=""
 KEY_FILE=""
 SAIA_KEY=""
@@ -28,6 +29,10 @@ while [[ $# -gt 0 ]]; do
     --key)
       KEY="$2"
       shift 2
+      ;;
+    -y|--yes)
+      ASSUME_YES=1
+      shift
       ;;
     --key-file)
       KEY_FILE="$2"
@@ -39,6 +44,7 @@ while [[ $# -gt 0 ]]; do
       echo "Options:"
       echo "  --key <value>       SAIA API key (overrides SAIA_API_KEY env)"
       echo "  --key-file <path>   File containing the SAIA API key"
+      echo "  -y, --yes           Install the agent without asking (for non-TTY runs)"
       echo "  -h, --help          Show this help"
       echo ""
       echo "The API key is taken from:"
@@ -141,6 +147,8 @@ AIDER_BIN="$HOME/.local/bin/aider"
 if ! command -v aider &>/dev/null; then
   if [[ -x "$AIDER_BIN" ]]; then
     export PATH="$HOME/.local/bin:$PATH"
+  elif [[ $ASSUME_YES -eq 1 ]]; then
+    :  # --yes: install without asking
   elif [[ -t 0 ]]; then
     read -r -p "aider not found — install it via the official installer? [y/N] " reply
     if [[ $reply != [yY]* ]]; then
