@@ -2,7 +2,7 @@
 #
 # install-aider-saia-gwdg.sh — GENERATED FILE, DO NOT EDIT.
 # Regenerate with: ./build.sh  (in the aider-saia-gwdg repo)
-# Source: aider-saia-gwdg commit fa7edfe, packed 2026-09-30T05:54:14Z
+# Source: aider-saia-gwdg commit ab69ce2-dirty, packed 2026-10-05T10:01:23Z
 #
 # Installs the GWDG SAIA setup for aider: provider + 2 source files.
 
@@ -101,6 +101,9 @@ mkdir -p "$EXTRACT_DIR/src"
 cat >"$EXTRACT_DIR/src/add-saia-aider.sh" <<'__ASA_EOF__'
 #!/usr/bin/env bash
 set -euo pipefail
+
+# Base URL override for tests and local gateways (default: production SAIA).
+SAIA_BASE_URL="${SAIA_BASE_URL:-https://chat-ai.academiccloud.de/v1}"
 
 # add-saia-aider.sh — Add GWDG SAIA provider to aider
 #
@@ -302,7 +305,7 @@ mkdir -p "$(dirname "$CONFIG_FILE")"
   echo ""
   echo "# OpenAI-compatible endpoint: GWDG SAIA"
   echo "model: openai/$DEFAULT_MODEL"
-  echo "openai-api-base: https://chat-ai.academiccloud.de/v1"
+  echo "openai-api-base: $SAIA_BASE_URL"
   echo "openai-api-key: $SAIA_KEY"
   echo ""
   echo "# Available SAIA models (use with: aider --model openai/<model>):"
@@ -315,7 +318,7 @@ chmod 600 "$CONFIG_FILE"
 echo ""
 echo "✓ GWDG SAIA provider configured for aider!"
 echo "  Config: $CONFIG_FILE"
-echo "  Base URL: https://chat-ai.academiccloud.de/v1"
+echo "  Base URL: $SAIA_BASE_URL"
 echo "  Default model: openai/$DEFAULT_MODEL"
 echo "  Models: ${#MODELS[@]} ready SAIA models"
 echo ""

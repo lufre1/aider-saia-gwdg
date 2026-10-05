@@ -58,3 +58,12 @@ echo "$MODELS_JSON" | grep -q "fake-model" || fail "fake endpoint did not list m
 
 echo "PASS: config written with base URL, key, default model, and model list"
 echo "      fake SAIA endpoint answered /v1/models"
+
+# ── SAIA_BASE_URL override (used by the benchmark's local gateway) ─────
+OV="$WORK/override"; mkdir -p "$OV/home"
+HOME="$OV/home" AIDER_CONFIG_FILE="$OV/aider.conf.yml" SAIA_BASE_URL="http://127.0.0.1:$PORT/v1" \
+  SAIA_API_KEY=dummy bash ../src/add-saia-aider.sh >"$WORK/override.log" 2>&1 \
+  || fail "installer failed with SAIA_BASE_URL set"
+grep -qx "openai-api-base: http://127.0.0.1:$PORT/v1" "$OV/aider.conf.yml" \
+  || fail "SAIA_BASE_URL not written to the aider config"
+echo "PASS: SAIA_BASE_URL override"
