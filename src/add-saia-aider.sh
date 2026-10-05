@@ -14,12 +14,20 @@ SAIA_BASE_URL="${SAIA_BASE_URL:-https://chat-ai.academiccloud.de/v1}"
 #   SAIA_API_KEY="your-key" ./add-saia-aider.sh
 #   ./add-saia-aider.sh --key "your-key"
 #   ./add-saia-aider.sh --key-file ~/.local/share/opencode/auth.json
+#   SAIA_API_KEYS_EXTRA="key2,key3" ./add-saia-aider.sh --key "your-key"
 #
 # The API key is written to ~/.aider.conf.yml (chmod 600). aider's YAML config
 # accepts the OpenAI-style key directly, which is what the SAIA endpoint uses.
+#
+# With extra keys (SAIA_API_KEYS_EXTRA / --extra-keys / --extra-keys-file)
+# aider is pointed at the local saia-keyring proxy instead, which swaps to the
+# next key when the active one is revoked, drained or rate limited
+# (saia-keyring.sh).
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODELS_FILE="${SCRIPT_DIR}/models.txt"
+# shellcheck source=saia-keyring.sh
+source "${SCRIPT_DIR}/saia-keyring.sh"
 
 # ── Parse arguments ──────────────────────────────────────────────────
 ASSUME_YES=0
@@ -41,6 +49,10 @@ while [[ $# -gt 0 ]]; do
       KEY_FILE="$2"
       shift 2
       ;;
+    --extra-keys|--extra-keys-file|--keyring|--no-keyring)
+      keyring_arg "$@"
+      shift "$KEYRING_SHIFT"
+      ;;
     -h|--help)
       echo "Usage: SAIA_API_KEY=... ./add-saia-aider.sh [--key <key> | --key-file <path>]"
       echo ""
@@ -48,6 +60,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --key <value>       SAIA API key (overrides SAIA_API_KEY env)"
       echo "  --key-file <path>   File containing the SAIA API key"
       echo "  -y, --yes           Install the agent without asking (for non-TTY runs)"
+      keyring_usage
       echo "  -h, --help          Show this help"
       echo ""
       echo "The API key is taken from:"
@@ -186,6 +199,10 @@ if ! command -v aider &>/dev/null; then
   fi
 fi
 
+# ── Automatic key swap (2+ keys) ─────────────────────────────────────
+# Sets SAIA_EFFECTIVE_BASE_URL: the local proxy when it is up, else SAIA itself.
+keyring_setup "$SAIA_KEY"
+
 # ── Write ~/.aider.conf.yml ──────────────────────────────────────────
 CONFIG_FILE="${AIDER_CONFIG_FILE:-$HOME/.aider.conf.yml}"
 DEFAULT_MODEL="${SAIA_DEFAULT_MODEL:-deepseek-v4-flash-0731}"
@@ -204,7 +221,7 @@ mkdir -p "$(dirname "$CONFIG_FILE")"
   echo ""
   echo "# OpenAI-compatible endpoint: GWDG SAIA"
   echo "model: openai/$DEFAULT_MODEL"
-  echo "openai-api-base: $SAIA_BASE_URL"
+  echo "openai-api-base: $SAIA_EFFECTIVE_BASE_URL"
   echo "openai-api-key: $SAIA_KEY"
   echo ""
   echo "# Available SAIA models (use with: aider --model openai/<model>):"
@@ -217,7 +234,7 @@ chmod 600 "$CONFIG_FILE"
 echo ""
 echo "✓ GWDG SAIA provider configured for aider!"
 echo "  Config: $CONFIG_FILE"
-echo "  Base URL: $SAIA_BASE_URL"
+echo "  Base URL: $SAIA_EFFECTIVE_BASE_URL"
 echo "  Default model: openai/$DEFAULT_MODEL"
 echo "  Models: ${#MODELS[@]} ready SAIA models"
 echo ""

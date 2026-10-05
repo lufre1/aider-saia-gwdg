@@ -111,6 +111,41 @@ openai-api-key: <your-key>
 
 **Note**: the API key is written in plaintext to `~/.aider.conf.yml` with 600 permissions (owner read/write only).
 
+## Multiple keys: automatic key swap
+
+SAIA rate limits are per key (30/min, 200/hour, 1000/day, 3000/month). Give the
+installer extra keys and aider swaps to the next one by itself when the active key is
+revoked (401/403), drained (its hour/day/month budget nearly used up) or rate limited
+(429) — the same rotation the opencode setup does.
+
+```bash
+# Extra keys via the environment, so they never show up in `ps`
+SAIA_API_KEYS_EXTRA="key2,key3" bash install-aider-saia-gwdg.sh --yes
+
+# Or reuse the extra keys of an opencode setup
+bash install-aider-saia-gwdg.sh --yes --extra-keys-file ~/.local/share/opencode/saia-gwdg-keys.json
+```
+
+With 2+ keys the installer starts **saia-keyring**, a small local proxy
+(`~/.local/share/saia-keyring/saia_keyring.py`, stdlib Python 3), and writes
+`openai-api-base: http://127.0.0.1:8788/v1` to `~/.aider.conf.yml` instead of SAIA.
+aider keeps sending its usual key (`openai-api-key`, the primary key); the proxy only
+serves requests carrying one of the configured keys and forwards them on the active
+key. Every harness installed with extra keys shares the same proxy and key list. Keys
+are only swapped before a response starts — a stream in progress is never cut over.
+
+| What | Where |
+|------|-------|
+| Keys | `~/.config/saia-keyring/keyring.json` (chmod 600), primary key first. A reinstall without extra keys keeps the stored ones; a changed list is backed up to `keyring.json.bak-<timestamp>` |
+| Status | `saia-keyring status` — per-key budget, the active key, rejected keys |
+| Log | `~/.cache/saia-keyring/proxy.log` |
+| Service | systemd user unit `saia-keyring` (Linux), launchd agent `de.gwdg.saia-keyring` (macOS), otherwise a line in your shell rc |
+| Turn off | re-run with `--no-keyring`: aider talks to SAIA directly again |
+
+With a single key nothing changes: aider talks to SAIA directly, as before. When every
+key is out, aider shows why — e.g. `All 3 SAIA key(s) rejected by SAIA (...) — the
+key(s) are revoked or expired`.
+
 ## Troubleshooting
 
 ### Config not taking effect
@@ -141,7 +176,9 @@ This installs to `~/.local/bin/aider`. If it is not on your PATH, add `~/.local/
 
 ## Advanced: Regenerate the installer
 
-If you modify `src/add-saia-aider.sh` or `src/models.txt`, regenerate the installer:
+If you modify `src/add-saia-aider.sh` or `src/models.txt`, regenerate the installer.
+`src/saia_keyring.py` and `src/saia-keyring.sh` are vendored from
+`opencode-extras/keyring/` — change them there and run its `keyring/sync.sh`.
 
 ```bash
 ./build.sh

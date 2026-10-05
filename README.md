@@ -18,6 +18,9 @@ This one-shot installer:
 - Installs aider (if missing) via the official installer (`curl -LsSf https://aider.chat/install.sh | sh`)
 - Writes `~/.aider.conf.yml` pointing aider at the GWDG SAIA API with 14 ready models
 - Sets the default model to a SAIA model, so aider runs with **no OpenAI account**
+- With extra keys (`SAIA_API_KEYS_EXTRA="key2,key3"`), routes aider through a local
+  key-rotating proxy that swaps keys automatically when one is revoked, drained or
+  rate limited (see `SETUP.md` → *Multiple keys*)
 - Works on macOS, Linux, and WSL
 
 Or see `SETUP.md` for detailed instructions and troubleshooting.
@@ -30,6 +33,7 @@ Or see `SETUP.md` for detailed instructions and troubleshooting.
 | `build.sh` | Regenerates the installer from source files |
 | `src/add-saia-aider.sh` | Live source script (portable key sourcing) |
 | `src/models.txt` | List of 14 ready SAIA models |
+| `src/saia_keyring.py`, `src/saia-keyring.sh` | Key-rotating proxy and its install logic, vendored from `opencode-extras/keyring/` (never edit here) |
 | `test/fake-saia.py` | Fake SAIA endpoint for the smoke test (not packed) |
 | `test/test-install.sh` | Smoke test that verifies the config is written (not packed) |
 
@@ -44,7 +48,8 @@ SAIA_API_KEY → install-aider-saia-gwdg.sh → [aider install] → src/add-saia
 
 ## Maintaining
 
-After changing `src/add-saia-aider.sh` or `src/models.txt`, regenerate the installer:
+After changing `src/add-saia-aider.sh` or `src/models.txt`, regenerate the installer
+(the keyring files are synced in by `opencode-extras/keyring/sync.sh`, which also rebuilds):
 
 ```bash
 ./build.sh
