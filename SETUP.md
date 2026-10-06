@@ -178,7 +178,7 @@ This installs to `~/.local/bin/aider`. If it is not on your PATH, add `~/.local/
 
 If you modify `src/add-saia-aider.sh` or `src/models.txt`, regenerate the installer.
 `src/saia_keyring.py` and `src/saia-keyring.sh` are vendored from
-`opencode-extras/keyring/` — change them there and run its `keyring/sync.sh`.
+`opencode-saia-gwdg/keyring/` — change them there and run its `keyring/sync.sh`.
 
 ```bash
 ./build.sh
