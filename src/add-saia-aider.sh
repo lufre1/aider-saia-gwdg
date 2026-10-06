@@ -14,15 +14,15 @@ SAIA_BASE_URL="${SAIA_BASE_URL:-https://chat-ai.academiccloud.de/v1}"
 #   SAIA_API_KEY="your-key" ./add-saia-aider.sh
 #   ./add-saia-aider.sh --key "your-key"
 #   ./add-saia-aider.sh --key-file ~/.local/share/opencode/auth.json
-#   SAIA_API_KEYS_EXTRA="key2,key3" ./add-saia-aider.sh --key "your-key"
+#   SAIA_API_KEYS_EXTRA="key2,key3" ./add-saia-aider.sh --key "your-key" --keyring
 #
 # The API key is written to ~/.aider.conf.yml (chmod 600). aider's YAML config
 # accepts the OpenAI-style key directly, which is what the SAIA endpoint uses.
 #
-# With extra keys (SAIA_API_KEYS_EXTRA / --extra-keys / --extra-keys-file)
-# aider is pointed at the local saia-keyring proxy instead, which swaps to the
-# next key when the active one is revoked, drained or rate limited
-# (saia-keyring.sh).
+# With --keyring (opt-in) and extra keys (SAIA_API_KEYS_EXTRA / --extra-keys /
+# --extra-keys-file) aider is pointed at the local saia-keyring proxy instead,
+# which swaps to the next key when the active one is revoked, drained or rate
+# limited (saia-keyring.sh).
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODELS_FILE="${SCRIPT_DIR}/models.txt"
@@ -199,7 +199,7 @@ if ! command -v aider &>/dev/null; then
   fi
 fi
 
-# ── Automatic key swap (2+ keys) ─────────────────────────────────────
+# ── Automatic key swap (--keyring) ───────────────────────────────────
 # Sets SAIA_EFFECTIVE_BASE_URL: the local proxy when it is up, else SAIA itself.
 keyring_setup "$SAIA_KEY"
 

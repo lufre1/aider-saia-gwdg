@@ -78,6 +78,17 @@ grep -qx "openai-api-base: http://127.0.0.1:$PORT/v1" "$OV/aider.conf.yml" \
   || fail "SAIA_BASE_URL not written to the aider config"
 echo "PASS: SAIA_BASE_URL override"
 
+# ── Extra keys without --keyring: SAIA directly, no proxy (opt-in only) ─
+NK="$WORK/nokeyring"; mkdir -p "$NK/home"
+HOME="$NK/home" AIDER_CONFIG_FILE="$NK/aider.conf.yml" SAIA_API_KEYS_EXTRA=extra-key \
+  SAIA_API_KEY=dummy bash ../src/add-saia-aider.sh >"$WORK/nokeyring.log" 2>&1 \
+  || { cat "$WORK/nokeyring.log" >&2; fail "installer failed with extra keys but no --keyring"; }
+grep -qx "openai-api-base: https://chat-ai.academiccloud.de/v1" "$NK/aider.conf.yml" \
+  || fail "extra keys alone pointed aider away from SAIA"
+[[ ! -e "$NK/home/.config/saia-keyring" ]] || fail "keyring set up without --keyring"
+grep -q "opt-in (add --keyring)" "$WORK/nokeyring.log" || fail "no note about the unused extra keys"
+echo "PASS: extra keys without --keyring: direct to SAIA, no proxy"
+
 # ── Automatic key swap: two keys, the first one revoked ───────────────
 KR="$WORK/keyring"; mkdir -p "$KR/home"
 KR_PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')"

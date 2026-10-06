@@ -18,7 +18,7 @@ This one-shot installer:
 - Installs aider (if missing) via the official installer (`curl -LsSf https://aider.chat/install.sh | sh`)
 - Writes `~/.aider.conf.yml` pointing aider at the GWDG SAIA API with 14 ready models
 - Sets the default model to a SAIA model, so aider runs with **no OpenAI account**
-- With extra keys (`SAIA_API_KEYS_EXTRA="key2,key3"`), routes aider through a local
+- Optional, with `--keyring`: routes aider through a local
   key-rotating proxy that swaps keys automatically when one is revoked, drained or
   rate limited (see `SETUP.md` → *Multiple keys*)
 - Works on macOS, Linux, and WSL
